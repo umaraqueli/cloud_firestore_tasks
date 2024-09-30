@@ -16,9 +16,19 @@ class _HomePageState extends State<HomePage> {
   final FirestoreService firestoreService = FirestoreService();
 
 //Criando um Modal
-  void _openModalForm() {
+
+  void _openModalForm({String? docId}) async {
+    if (docId != null) {
+      // Buscar o documento com o docId
+      DocumentSnapshot document = await firestoreService.getTask(docId);
+      Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+
+      // Preencher os controladores com os valores existentes
+      _titleController.text = data["title"];
+      _descriptionController.text = data["description"];
+    }
+
     showModalBottomSheet(
-      backgroundColor: Color.fromARGB(255, 99, 131, 151),
       context: context,
       isScrollControlled:
           true, // Permite que o modal use a altura total disponível
@@ -43,7 +53,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 "Adicionar Tarefas",
-                style: TextStyle(fontSize: 24, color: Colors.white),
+                style: TextStyle(fontSize: 24, color: Colors.black),
               ),
               Divider(
                 color: Colors.white,
@@ -73,13 +83,19 @@ class _HomePageState extends State<HomePage> {
                         borderRadius: BorderRadius.circular(20),
                       ))),
               SizedBox(height: 20),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () {
-                  firestoreService.addTask(
-                      _titleController.text, _descriptionController.text);
+                  if (docId == null) {
+                    firestoreService.addTask(
+                        _titleController.text, _descriptionController.text);
+                  } else {
+                    firestoreService.updateTask(docId, _titleController.text,
+                        _descriptionController.text);
+                  }
                   //Limpar os controllers
                   _titleController.clear();
                   _descriptionController.clear();
+                  setState(() {});
                   Navigator.pop(context);
                 },
                 child: Text('Salvar'),
@@ -106,17 +122,24 @@ class _HomePageState extends State<HomePage> {
             },
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            _openModalForm();
+          },
+          child: Icon(Icons.add),
+        ),
         body: StreamBuilder<QuerySnapshot>(
             stream: firestoreService.getTasksStream(),
             builder: (context, snapshot) {
-              // se existir informacaoc
+              // se existir informacao
               if (snapshot.hasData) {
                 List tasksList = snapshot.data!.docs;
+
                 // mostra em formato de lista
                 return ListView.builder(
                     itemCount: tasksList.length,
                     itemBuilder: (context, index) {
-                      //pega cada documento individualmente
+                      //Pega cada documento individualmente
                       DocumentSnapshot document = tasksList[index];
                       String docId = document.id;
 
@@ -124,10 +147,38 @@ class _HomePageState extends State<HomePage> {
                       Map<String, dynamic> data =
                           document.data() as Map<String, dynamic>;
                       String taskTitle = data["title"];
-                      String taskDescriptino = data["title"];
-                      return ListTile(
-                        title: Text(taskTitle),
-                      );
+                      String taskDescription = data["description"];
+
+                      return Padding(
+                          padding: EdgeInsets.all(16),
+                          child: ListTile(
+                            tileColor: Colors
+                                .grey[200], // Cor de fundo para destacar o item
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  15.0), // Bordas arredondadas do ListTile
+                            ),
+
+                            contentPadding: EdgeInsets.symmetric(
+                                vertical: 8.0, horizontal: 16.0),
+                            title: Text(taskTitle),
+                            subtitle: Text(taskDescription),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                    onPressed: () {
+                                      _openModalForm(docId: docId);
+                                    },
+                                    icon: Icon(Icons.settings)),
+                                IconButton(
+                                    onPressed: () {
+                                      firestoreService.deleteTask(docId);
+                                    },
+                                    icon: Icon(Icons.delete)),
+                              ],
+                            ),
+                          ));
                     });
               } else {
                 return Center(child: Text("Nenhuma Tarefa encontrada"));
