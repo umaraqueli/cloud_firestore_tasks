@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_projetct/services/authentication_service.dart';
 import 'package:firebase_projetct/services/firestore_service.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final User user;
+  const HomePage({super.key, required this.user});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -114,14 +116,24 @@ class _HomePageState extends State<HomePage> {
           title: Text('Minhas Tarefas'),
         ),
         drawer: Drawer(
-          child: ListTile(
-            title: Text('Deslogar'),
-            leading: Icon(Icons.logout),
-            onTap: () {
-              AuthenticationService().logoutUser();
-            },
-          ),
-        ),
+            child: Column(
+          children: [
+            UserAccountsDrawerHeader(
+                accountName: Text(widget.user.displayName != null
+                    ? widget.user.displayName!
+                    : "Não informado"),
+                accountEmail: Text(widget.user.email != null
+                    ? widget.user.email!
+                    : "Não informado")),
+            ListTile(
+              title: Text('Deslogar'),
+              leading: Icon(Icons.logout),
+              onTap: () {
+                AuthenticationService().logoutUser();
+              },
+            ),
+          ],
+        )),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             _openModalForm();

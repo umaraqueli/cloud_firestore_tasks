@@ -27,13 +27,28 @@ class AuthenticationService {
       return await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
     } on FirebaseAuthException catch (e) {
-      return Future.error(e.message ?? 'Erro de login');
+      if (e.code == 'invalid-credential') {
+        return "Email ou senha incorreto!";
+      }
+      return "Erro de login";
     }
   }
 
   Future<void> logoutUser() async {
     await _firebaseAuth.signOut();
     await _googleSignIn.signOut();
+  }
+
+  Future passwordReset(email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      print(e.code);
+      if (e.code == 'invalid-email') {
+        return 'Formato de email incorreto!';
+      }
+      'Erro desconhecido!';
+    }
   }
 
   Future signInWithGoogle() async {

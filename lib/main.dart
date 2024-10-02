@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_projetct/views/forgot_password.dart';
 import 'package:firebase_projetct/views/home_page.dart';
 import 'package:firebase_projetct/views/login_register.dart';
 import 'package:firebase_projetct/views/login_screen.dart';
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
       home: const MainPage(),
       routes: {
         '/registrarUsuario': (context) => const LoginRegister(),
+        '/esqueceuSenha': (context) => const ForgotPassword(),
       },
     );
   }
@@ -55,7 +57,7 @@ class _MainPageState extends State<MainPage> {
       stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return HomePage();
+          return HomePage(user: snapshot.data!);
         } else {
           return LoginScreen();
         }

@@ -15,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isPasswordVisible = false;
 
   AuthenticationService _authService = AuthenticationService();
 
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Tela de Login'),
+          title: const Text('Login'),
         ),
         body: SingleChildScrollView(
             child: Padding(
@@ -43,11 +44,40 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(height: 10),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: decoration("Senha"),
-                    obscureText: true,
+                    obscureText: !_isPasswordVisible,
+                    decoration: decoration(
+                      "Senha",
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
                     validator: (value) => requiredValidator(value, "a senha"),
                   ),
                   SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, "/esqueceuSenha");
+                          },
+                          child: Text(
+                            "Esqueceu a senha?",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold),
+                          ))
+                    ],
+                  ),
                   FilledButton(
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
@@ -59,7 +89,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             if (erro != null) {
                               snackBarWidget(
                                   context: context, title: erro, isError: true);
-                            }
+                            } else
+                              snackBarWidget(
+                                  context: context,
+                                  title: "Login Efetuado com sucesso",
+                                  isError: false);
                           });
                         }
                       },
@@ -69,7 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text('Entrar'),
                         ],
                       )),
-                  FilledButton(
+                  /*  FilledButton(
                       style:
                           FilledButton.styleFrom(backgroundColor: Colors.red),
                       onPressed: () {
@@ -87,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           SizedBox(width: 10),
                           Text("Logar com o Google")
                         ],
-                      )),
+                      )),*/
                   SizedBox(height: 20),
                   TextButton(
                     onPressed: () {
